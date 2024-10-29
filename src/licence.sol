@@ -35,6 +35,8 @@ contract LicenseManager {
     function winLicense() public payable returns (bool) {
         require(msg.value >= 0.01 ether && msg.value <= 0.5 ether, "send between 0.01 and 0.5 ether to try your luck");
         uint maxThreshold = uint ((msg.value / 1e16));
+
+        // bad design principle by using blockhass
         uint algorithm = uint (keccak256(abi.encodePacked(uint256(msg.value), msg.sender, uint(1337), blockhash(block.number-1))));
         uint pickedNumber = algorithm % 100;
         if (pickedNumber < maxThreshold) {
